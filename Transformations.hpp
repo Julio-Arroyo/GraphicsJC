@@ -4,8 +4,8 @@
 #include <cmath>
 #include <sstream>
 #include "Objects.hpp"
-#include "Eigen/Eigen"
-#include "Eigen/Dense"
+#include "Eigen"
+#include "Dense"
 
 void makeTranslationMat(Eigen::Matrix4d& m, double tx, double ty, double tz) {
     m << 1, 0, 0, tx,
