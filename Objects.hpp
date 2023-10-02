@@ -75,7 +75,7 @@ public:
                     break;
                 }
                 case Type::VERTEX: {
-                    Vertex v = {buffer[0], buffer[1], buffer[2]};
+                    Vertex v = {buffer[0], buffer[1], buffer[2]};  // TODO save only indices
                     vertices.push_back(v);
                     break;
                 }
@@ -89,10 +89,10 @@ public:
         label = label_;
     }
 
-    explicit Object(const Object& other) {
+    Object(Object& other) {
         vertices = other.vertices;
         faces = other.faces;
-        label = other.label + "_copy";  // TODO
+        label = other.label + "_copy" + std::to_string(other.getAndIncNumCopies());
     }
 
     void display() {  // TODO: turn into << overload
@@ -110,11 +110,16 @@ public:
         transformation *= t;
     }
 
+    size_t getAndIncNumCopies() {
+        return ++numCopies;
+    }
+
 private:
     std::vector<Vertex> vertices;
     std::vector<Face> faces;
     Eigen::Matrix4d transformation{Eigen::Matrix4d::Identity()};
     std::string label;
+    size_t numCopies{0};
 };
 
 #endif

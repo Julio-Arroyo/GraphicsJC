@@ -3,7 +3,7 @@
 
 #include <unordered_map>
 #include "Objects.hpp"
-#include "GeometricTransformations.hpp"
+#include "Transformations.hpp"
 
 void parseFile(std::string& fname, std::vector<std::shared_ptr<Object>>& objects) {
     bool builderMode = true;
