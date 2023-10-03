@@ -2,8 +2,8 @@
 #define GEOMETRIC_TRANSFORMATIONS_HPP
 
 #include <cmath>
-#include <sstream>
 #include "Objects.hpp"
+#include "Util.hpp"
 #include "Eigen"
 #include "Dense"
 
@@ -35,31 +35,24 @@ void makeScalingMat(Eigen::Matrix4d& m, double sx, double sy, double sz) {
 }
 
 void makeMatrix(Eigen::Matrix4d& m, std::string& line) {
-    std::istringstream ss{line};
-    std::string token;
-    ss >> token;
-    assert(token.length() == 1);
-    char matType = (char) token[0];
-
+    std::string param_header;
     double buffer[4];
-    int count = 0;
-    ss >> token;
-    while (ss) {
-        buffer[count++] = std::stof(token);
-        ss >> token;
-    }
-    
-    switch (matType) {
+
+    int param_count = parse_parameter_str(line, param_header, buffer, 4);
+    assert(-1 != param_count);
+    assert(param_header.length() == 1);
+
+    switch ((char) param_header[0]) {
         case Type::TRANSLATION_MAT:
-            assert(count == 3);
+            assert(param_count == 3);
             makeTranslationMat(m, buffer[0], buffer[1], buffer[2]);
             break;
         case Type::ROTATION_MAT:
-            assert(count == 4);
+            assert(param_count == 4);
             makeRotationMat(m, buffer[0], buffer[1], buffer[2], buffer[3]);
             break;
         case Type::SCALING_MAT:
-            assert(count == 3);
+            assert(param_count == 3);
             makeScalingMat(m, buffer[0], buffer[1], buffer[2]);
             break;
     }
