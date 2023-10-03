@@ -22,7 +22,7 @@ void parseFile(std::string& fname, std::vector<std::shared_ptr<Object>>& objects
 
                 std::string label = line.substr(0, spaceIdx);
                 std::string objFilename = line.substr(spaceIdx + 1, line.length());
-                std::shared_ptr<Object> obj = std::make_shared<Object>(objFilename, label);
+                std::shared_ptr<Object> obj = std::make_shared<Object>(objFilename, label, false);
 
                 objects.push_back(obj);
                 labelToObj.insert({label, obj});

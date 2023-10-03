@@ -23,26 +23,32 @@ struct Vertex {
 };
 
 struct Face {
-    Vertex p1;
-    Vertex p2;
-    Vertex p3;
+    int v1Idx;
+    int v2Idx;
+    int v3Idx;
 };
 
 class Object {
 public:
-    Object(std::string& fname) {
+    Object(std::string& fname, bool printObj = true) {
         vertices.emplace_back();  // dummy vertex for 1-indexing
 
         std::ifstream file{fname};
         std::string currLine;
 
-        // print header
-        std::cout << fname.substr(0, fname.find(".")) << ":" << std::endl;
-        std::cout << std::endl;
+        if (printObj) {
+            // print header
+            std::cout << fname.substr(0, fname.find(".")) << ":"
+                      << std::endl << std::endl;
+        }
+
         std::getline(file, currLine);
 
         while (file) {
-            std::cout << currLine << std::endl;
+            if (printObj) {
+                std::cout << currLine << std::endl;
+            }
+
             std::istringstream currStream{currLine};
             std::string token;
 
@@ -65,27 +71,28 @@ public:
             // Construct either Face or Vertex
             switch (objType) {
                 case Type::FACE: {
-                    int v1Idx = (int) buffer[0];
-                    int v2Idx = (int) buffer[1];
-                    int v3Idx = (int) buffer[2];
-                    Face f = {vertices[v1Idx],
-                              vertices[v2Idx],
-                              vertices[v3Idx]};
+                    Face f = {(int) buffer[0],
+                              (int) buffer[1],
+                              (int) buffer[2]};
                     faces.push_back(f);
                     break;
                 }
                 case Type::VERTEX: {
-                    Vertex v = {buffer[0], buffer[1], buffer[2]};  // TODO save only indices
+                    Vertex v = {buffer[0], buffer[1], buffer[2]};
                     vertices.push_back(v);
                     break;
                 }
             }
             std::getline(file, currLine);
         }
-        std::cout << std::endl;
+        if (printObj) {
+            std::cout << std::endl;
+        }
     }
 
-    Object(std::string& fname, std::string& label_) : Object(fname) {
+    Object(std::string& fname, std::string& label_, bool printObj = true)
+        : Object(fname, printObj) 
+    {
         label = label_;
     }
 
