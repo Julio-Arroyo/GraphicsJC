@@ -8,32 +8,53 @@
 
 struct Camera {
     struct Position {
-        int x, y, z;
+        double x, y, z;
     };
     struct Orientation {
-        int x, y, z, theta;
+        double x, y, z, theta;
     };
 
     Position pos;
     Orientation orientation;
-    int near, far, left, right, top, bottom;
+    double near, far, left, right, top, bottom;
 };
 
 class Scene {
 public:
-    Scene(const std::string& sceneDescriptionFname) {
-        assert(parseDescription(sceneDescriptionFname, true));
-
-        makeWorldToCameraProj();
-        makePerspectiveProjection();
-
-        Eigen::Matrix4d worldToHomoNDC = perspectiveProj*worldToCameraProj;
-        for (std::shared_ptr<Object> obj_copy : objectCopies) {
-            obj_copy->addTransformation(worldToCameraProj);
-        }
+    Scene(const std::string& sceneDescriptionFname, size_t xres_, size_t yres_)
+        : xres{xres_}, yres{yres_}
+    {
+        // Build Camera, base Objects, and Object-Copies (i.e. transformed Objects)
+        assert(parseDescription(sceneDescriptionFname));
     }
 
-    void wireframeToPPM(const std::string& outputFilename) {}
+    /** @brief Outputs to stdout a PPM of the image. */
+    void wireframePPM() {
+        const size_t ncols = xres;
+        std::vector<std::vector<bool>> screenCoords{yres, std::vector<bool>(xres)};
+        // std::cout << "SIZES: " << screenCoords.size() << "," << screenCoords[0].size() << std::endl;
+
+        for (std::shared_ptr<Object> obj : objectCopies) {
+            // std::cout << "OBJ" << std::endl;
+            obj->fillScreenCoords(screenCoords, xres, yres);
+        }
+
+        std::string c1 = "0 0 0";  // "85 47 130";   // purple
+        std::string c2 = "253 185 39";  // gold
+        // output pixel grid to stdout as PPM
+        std::cout << "P3" << std::endl;  // PPM header
+        std::cout << yres << " " << xres << std::endl;
+        std::cout << "255" << std::endl;
+        for (int32_t col = xres; col >= 0; col--) {
+            for (int32_t row = 0; row < yres; row++) {
+                if (screenCoords[row][col]) {
+                    std::cout << c2 << std::endl;
+                } else {
+                    std::cout << c1 << std::endl;
+                }
+            }
+        }
+    }
 
 private:
     /** @brief Converts between world and camera coordinates. */
@@ -67,10 +88,11 @@ private:
                              0,   0,   -1,  0;
     }
 
-    bool parseDescription(const std::string& fname, bool enable_logging = false) {
+    bool parseDescription(const std::string& fname) {
         ParsingStage stage{ParsingStage::CAMERA};
         std::ifstream file{fname};
         std::string line;
+        Eigen::Matrix4d worldToHomoNDC;
 
         std::getline(file, line);
         assert(line == "camera:");  // expected first line in file
@@ -80,10 +102,13 @@ private:
             switch (stage) {
                 case ParsingStage::CAMERA: {
                     if (line.length() == 0) {
+                        makeWorldToCameraProj();
+                        makePerspectiveProjection();
+                        worldToHomoNDC = perspectiveProj*worldToCameraProj;
                         stage = ParsingStage::OBJECTS;
                     } else {
                         std::string param_header;
-                        int buffer[4];
+                        double buffer[4];
                         int no_params = parse_parameter_str(line, param_header, buffer, 4);
 
                         if (param_header == "position") {
@@ -142,9 +167,8 @@ private:
                 case ParsingStage::OBJECT_COPIES: {
                     size_t spaceIdx = line.find(" ");
                     if (line.length() == 0) {  // finished copy, no more transformations
-                        if (enable_logging) {
-                            objectCopies.back()->display();
-                        }
+                        objectCopies.back()->addTransformation(worldToHomoNDC);
+                        objectCopies.back()->applyTransformation();
                     } else if (spaceIdx == std::string::npos) {  // create a new copy
                         std::shared_ptr<Object> original = labelToObj.find(line)->second;
                         std::shared_ptr<Object> copy
@@ -161,8 +185,9 @@ private:
             std::getline(file, line);
         }
 
-        if (objectCopies.size() > 0 && enable_logging) {
-            objectCopies.back()->display();
+        if (objectCopies.size() > 0) {
+            objectCopies.back()->addTransformation(worldToHomoNDC);
+            objectCopies.back()->applyTransformation();
         }
 
         return true;
@@ -179,6 +204,7 @@ private:
     Eigen::Matrix4d worldToCameraProj;  // world to camera space
     Eigen::Matrix4d perspectiveProj;    // camera space to homogeneous NDC
     Camera camera;
+    const size_t xres, yres;
 };
 
 #endif
