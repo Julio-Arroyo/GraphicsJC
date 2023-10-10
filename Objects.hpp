@@ -5,6 +5,7 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <algorithm>
 #include <sstream>
 #include "Eigen"
 
@@ -117,15 +118,21 @@ public:
             Vertex v1 = vertices[face.v1Idx];
             int32_t v1_x = (int32_t) (((v1.x - (-1)) / (1 - (-1))) * xres);
             int32_t v1_y = (int32_t) (((v1.y - (-1)) / (1 - (-1))) * yres);
+            v1_x = std::min(std::max(0, v1_x), (int32_t) xres-1);
+            v1_y = std::min(std::max(0, v1_y), (int32_t) yres-1);
             
             Vertex v2 = vertices[face.v2Idx];
             int32_t v2_x = (int32_t) (((v2.x - (-1)) / (1 - (-1))) * xres);
             int32_t v2_y = (int32_t) (((v2.y - (-1)) / (1 - (-1))) * yres);
+            v2_x = std::min(std::max(0, v2_x), (int32_t) xres-1);
+            v2_y = std::min(std::max(0, v2_y), (int32_t) yres-1);
 
             Vertex v3 = vertices[face.v3Idx];
             int32_t v3_x = (int32_t) (((v3.x - (-1)) / (1 - (-1))) * xres);
             int32_t v3_y = (int32_t) (((v3.y - (-1)) / (1 - (-1))) * yres);
-            // std::cout << "LLENANDO COORDS" << std::endl;
+            v3_x = std::min(std::max(0, v3_x), (int32_t) xres-1);
+            v3_y = std::min(std::max(0, v3_y), (int32_t) yres-1);
+
             drawLine(v1_y, v1_x, v2_y, v2_x, screenCoords);
             // std::cout << "RIP: <<" << std::endl;
             drawLine(v1_y, v1_x, v3_y, v3_x, screenCoords);
@@ -208,8 +215,6 @@ public:
 private:
     void drawLine(int32_t x0, int32_t y0, int32_t x1, int32_t y1,
                   std::vector<std::vector<bool>>& screenCoords) {
-        // std::cout << "DRAWLINE: (" << x0 << ", " << y0 << ") --> (" << x1 << ", " << y1 << ")" << std::endl;
-        
         int32_t delta_x = x1 - x0;
         int32_t delta_y = y1 - y0;
 
