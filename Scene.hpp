@@ -32,10 +32,8 @@ public:
     void wireframePPM() {
         const size_t ncols = xres;
         std::vector<std::vector<bool>> screenCoords{yres, std::vector<bool>(xres)};
-        // std::cout << "SIZES: " << screenCoords.size() << "," << screenCoords[0].size() << std::endl;
 
         for (std::shared_ptr<Object> obj : objectCopies) {
-            // std::cout << "OBJ" << std::endl;
             obj->fillScreenCoords(screenCoords, xres, yres);
         }
 

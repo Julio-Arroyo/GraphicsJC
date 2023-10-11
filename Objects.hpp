@@ -77,7 +77,6 @@ public:
             // Construct either Face or Vertex
             switch (objType) {
                 case Type::FACE: {
-                    // std::cout << "FACE: " << buffer[0] << ", " << buffer[1] << ", " << buffer[2] << std::endl;
                     Face f = {(int) buffer[0],
                               (int) buffer[1],
                               (int) buffer[2]};
@@ -138,49 +137,9 @@ public:
             drawLine(v1_y, v1_x, v3_y, v3_x, screenCoords);
             drawLine(v2_y, v2_x, v3_y, v3_x, screenCoords);
         }
-
-        // for (size_t i = 1; i < vertices.size(); i++) {
-        //     Vertex vertex = vertices[i];
-        //     Eigen::Vector4d V;
-        //     V << vertex.x, vertex.y, vertex.z, 1;
-        //     // std::cout << "new vertex:" << V << std::endl;
-
-        //     // convert from world space coordinates to homogeneous NDC coords
-        //     Eigen::Vector4d V_hndc = V;  // Eigen::Vector4d V_hndc = projWorldToHomoNDC*V;
-        //     // std::cout << " vertex HNDC:" << V_hndc << std::endl;
-        //     double x_hndc = V_hndc(0);
-        //     double y_hndc = V_hndc(1);
-        //     double z_hndc = V_hndc(2);
-        //     double w_hndc = V_hndc(3);
-
-        //     // convert to cartesian NDC coordinates
-        //     Eigen::Vector4d V_cndc;
-        //     V_cndc << x_hndc/w_hndc, y_hndc/w_hndc, z_hndc/w_hndc, 1;
-        //     std::cout << " vertex CNDC:" << std::endl << V_cndc << std::endl << std::endl;
-
-        //     // check if inside frustum in camera space (i.e. inside cube in cartesian NDC)
-        //     double x_cndc = V_cndc(0);
-        //     double y_cndc = V_cndc(1);
-
-        //     double x_cndc = vertex.x;
-        //     double y_cndc = vertex.y;
-        //     if (std::abs(x_cndc) <= 1 && std::abs(y_cndc) <= 1)
-        //     {
-        //         double frac_row = (y_cndc - (-1)) / (1 - (-1));
-        //         int row = (int) (frac_row * yres);
-
-        //         double frac_col = (x_cndc - (-1)) / (1 - (-1));
-        //         int col = (int) (frac_col * xres);
-        //         // std::cout << "fracs row/col: " << frac_row << ", " << frac_col << std::endl;
-        //         // std::cout << "row/col: " << row << ", " << col << std::endl;
-        //         screenCoords[row][col] = true;
-        //         // std::cout << "bien" << std::endl;
-        //     }
-        // }
     }
 
     void addTransformation(Eigen::Matrix4d& t) {
-        // transformation *= t;
         transformation = t*transformation;
     }
 
@@ -248,15 +207,9 @@ private:
             }
         }
 
-        // std::cout << "i/j: (" << i_left << ", " << j_left << ") --> (" << i_right << ", " << j_right << ")" << std::endl;
-
-        // TODO: determine don't iterate always over x, instead over largest of delta_y and delta_x
-
         if (j_left <= j_right) {
-            // std::cout << "pOS" << std::endl;
             rasterizeLinePosSlope(i_left, j_left, i_right, j_right, screenCoords, flip_x_and_y);
         } else {
-            // std::cout << "neg" << std::endl;
             rasterizeLineNegSlope(i_left, j_left, i_right, j_right, screenCoords, flip_x_and_y);
         }
 
@@ -271,10 +224,6 @@ private:
         assert(neg_delta_x <= 0);
         int32_t delta_y = j1 - j0;
         assert(delta_y < 0);
-
-        // std::cout << "(i0, j0) = (" << i0 << ", " << j0 << ")" << std::endl;
-        // std::cout << "(i1, j1) = (" << i1 << ", " << j1 << ")" << std::endl;
-        // std::cout << "flipped? " << flipped_x_and_y << std::endl;
 
         // special case
         if (i0 == i1) {
@@ -309,11 +258,6 @@ private:
     void rasterizeLinePosSlope(int32_t i0, int32_t j0, int32_t i1, int32_t j1,
                                std::vector<std::vector<bool>>& screenCoords,
                                bool flipped_x_and_y) {
-        // screenCoords[y0][x0] = true;
-        // screenCoords[y1][x1] = true;
-        // return;
-        // std::cout << "POS RAST" << std::endl;
-
         int32_t eps = 0;
         int32_t y = j0;
         int32_t delta_x = i1 - i0;
