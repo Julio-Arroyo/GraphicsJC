@@ -1,5 +1,7 @@
 # GraphicsJC
-A header-only graphics library for C++.
+A graphics library for C++.
+
+![Wireframe rendering pipeline](img/scene_bunny1_high_res.png)
 
 ## Dependencies
 - [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) for linear algebra operations.
