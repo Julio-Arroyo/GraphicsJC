@@ -14,7 +14,6 @@ public:
     {
         // Build Camera, base Objects, and Object-Copies (i.e. transformed Objects)
         assert(parseDescription(sceneDescriptionFname,
-                                camera,
                                 labelToObj,
                                 objectCopies));
     }
@@ -55,3 +54,4 @@ private:
 };
 
 #endif
+
