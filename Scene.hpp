@@ -13,7 +13,10 @@ public:
         : xres{xres_}, yres{yres_}
     {
         // Build Camera, base Objects, and Object-Copies (i.e. transformed Objects)
-        assert(parseDescription(sceneDescriptionFname));
+        assert(parseDescription(sceneDescriptionFname,
+                                camera,
+                                labelToObj,
+                                objectCopies));
     }
 
     /** @brief Outputs to stdout a PPM of the image. */
@@ -45,9 +48,9 @@ public:
 private:
     std::unordered_map<std::string, std::shared_ptr<Object>> labelToObj;
     std::vector<std::shared_ptr<Object>> objectCopies;
-    Eigen::Matrix4d worldToCameraProj;  // world to camera space
-    Eigen::Matrix4d perspectiveProj;    // camera space to homogeneous NDC
-    Camera camera;
+    // Eigen::Matrix4d worldToCameraProj;  // world to camera space
+    // Eigen::Matrix4d perspectiveProj;    // camera space to homogeneous NDC
+    // Camera camera;
     const size_t xres, yres;
 };
 

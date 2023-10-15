@@ -73,8 +73,6 @@ enum ParsingStage : size_t {
  *  - objectCopies
  */
 bool parseDescription(const std::string& fname,
-                      Eigen::Matrix4d& worldToHomoNDC,
-                      Camera& camera,
                       std::unordered_map<std::string, std::shared_ptr<Object>>& labelToObj,
                       std::vector<std::shared_ptr<Object>>& objectCopies)
 {
@@ -82,6 +80,7 @@ bool parseDescription(const std::string& fname,
     std::ifstream file{fname};
     std::string line;
     Eigen::Matrix4d worldToHomoNDC;
+    Camera camera;
 
     std::getline(file, line);
     assert(line == "camera:");  // expected first line in file
@@ -129,7 +128,7 @@ bool parseDescription(const std::string& fname,
                 } else {
                     assert(line.length() == 0);
                     Eigen::Matrix4d perspectiveProj, worldToCameraProj;
-                    makeWorldToCameraProj(worldToCameraProj);
+                    makeWorldToCameraProj(worldToCameraProj, camera);
                     makePerspectiveProjection(perspectiveProj);
                     worldToHomoNDC = perspectiveProj*worldToCameraProj;
                     stage = ParsingStage::OBJECTS;
