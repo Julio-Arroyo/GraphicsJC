@@ -58,4 +58,37 @@ void makeMatrix(Eigen::Matrix4d& m, std::string& line) {
     }
 }
 
+
+/** @brief Converts between world and camera coordinates. */
+void makeWorldToCameraProj(Eigen::Matrix4d& m, Camera& camera) {
+    Eigen::Matrix4d Tc, Rc;  // camera position, rotation transformations respectively
+    makeTranslationMat(Tc, camera.pos.x, camera.pos.y, camera.pos.z);
+    makeRotationMat(Rc, camera.orientation.x,
+                        camera.orientation.y,
+                        camera.orientation.z,
+                        camera.orientation.theta);
+
+    Eigen::Matrix4d prod = Tc*Rc;
+    m = prod.inverse();
+}
+
+
+/** @brief Makes the projection matrix from camera space to homogeneous
+ *         Normalized Device Coordinates (NDC). */
+void makePerspectiveProjection(Eigen::Matrix4d& perspectiveProj) {
+    double m00, m11, m22, m02, m12, m23;
+
+    m00 = 2.0*camera.near / (camera.right - camera.left);
+    m02 = ((double) camera.right + camera.left) / (camera.right - camera.left);
+    m11 = 2.0*camera.near / (camera.top - camera.bottom);
+    m12 = ((double) camera.top + camera.bottom) / (camera.top - camera.bottom);
+    m22 = ((double) - (camera.far + camera.near)) / (camera.far - camera.near);
+    m23 = (-2.0 * camera.far * camera.near) / (camera.far - camera.near);
+
+    perspectiveProj << m00,   0, m02,   0,
+                         0, m11, m12,   0,
+                         0,   0, m22, m23,
+                         0,   0,   -1,  0;
+}
+
 #endif

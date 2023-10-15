@@ -66,11 +66,18 @@ enum ParsingStage : size_t {
 }*/
 
 /*
- * Populates
+ * Parses 'fname' file and populates
  *  - worldToHomoNDC
+ *  - camera
+ *  - labelToObj
+ *  - objectCopies
  */
 bool parseDescription(const std::string& fname,
-                      Eigen::Matrix4d& worldToHomoNDC) {
+                      Eigen::Matrix4d& worldToHomoNDC,
+                      Camera& camera,
+                      std::unordered_map<std::string, std::shared_ptr<Object>>& labelToObj,
+                      std::vector<std::shared_ptr<Object>>& objectCopies)
+{
     ParsingStage stage{ParsingStage::CAMERA};
     std::ifstream file{fname};
     std::string line;
@@ -83,12 +90,7 @@ bool parseDescription(const std::string& fname,
     while (file) {
         switch (stage) {
             case ParsingStage::CAMERA: {
-                if (line.length() == 0) {
-                    makeWorldToCameraProj();
-                    makePerspectiveProjection();
-                    worldToHomoNDC = perspectiveProj*worldToCameraProj;
-                    stage = ParsingStage::OBJECTS;
-                } else {
+                if (line.length() > 0) {
                     std::string param_header;
                     double buffer[4];
                     int no_params = parse_parameter_str(line, param_header, buffer, 4);
@@ -124,6 +126,13 @@ bool parseDescription(const std::string& fname,
                         std::cout << "Error: ParsingStage::CAMERA" << std::endl;
                         return false;
                     }
+                } else {
+                    assert(line.length() == 0);
+                    Eigen::Matrix4d perspectiveProj, worldToCameraProj;
+                    makeWorldToCameraProj(worldToCameraProj);
+                    makePerspectiveProjection(perspectiveProj);
+                    worldToHomoNDC = perspectiveProj*worldToCameraProj;
+                    stage = ParsingStage::OBJECTS;
                 }
                 break;
             }

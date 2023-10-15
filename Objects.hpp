@@ -8,37 +8,7 @@
 #include <algorithm>
 #include <sstream>
 #include "Eigen"
-
-enum Type : char {
-    VERTEX = 'v',
-    FACE = 'f',
-    TRANSLATION_MAT = 't',
-    ROTATION_MAT = 'r',
-    SCALING_MAT = 's'
-};
-
-struct Vertex {
-    double x;
-    double y;
-    double z;
-};
-
-struct Face {
-    int v1Idx;
-    int v2Idx;
-    int v3Idx;
-};
-
-struct VertexHomoNDC {
-    Vertex v;
-    bool inCamera;
-};
-
-struct Color {
-    uint8_t r;
-    uint8_t g;
-    uint8_t b;
-};
+#include "Types.hpp"
 
 class Object {
 public:
@@ -301,15 +271,18 @@ private:
         }
     }
 
-    std::vector<Vertex> vertices;
-    std::vector<Face> faces;
-
     /** Product of all transformations:  geometric transformations, world-to-camera projection,
         perspective projection. */
     Eigen::Matrix4d transformation{Eigen::Matrix4d::Identity()};
 
     std::string label;
     size_t numCopies{0};
+    std::vector<Vertex> vertices;
+    std::vector<Face> faces;
+    Color ambient;
+    Color diffuse;
+    Color specular;
+    float shininess;
 };
 
 #endif

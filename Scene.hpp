@@ -7,19 +7,6 @@
 #include "Transformations.hpp"
 #include "Parser.hpp"
 
-struct Camera {
-    struct Position {
-        double x, y, z;
-    };
-    struct Orientation {
-        double x, y, z, theta;
-    };
-
-    Position pos;
-    Orientation orientation;
-    double near, far, left, right, top, bottom;
-};
-
 class Scene {
 public:
     Scene(const std::string& sceneDescriptionFname, size_t xres_, size_t yres_)
