@@ -60,7 +60,7 @@ void makeMatrix(Eigen::Matrix4d& m, std::string& line) {
 
 
 /** @brief Converts between world and camera coordinates. */
-void makeWorldToCameraProj(Eigen::Matrix4d& m, Camera& camera) {
+void makeWorldToCameraProj(Eigen::Matrix4d& m, const Camera& camera) {
     Eigen::Matrix4d Tc, Rc;  // camera position, rotation transformations respectively
     makeTranslationMat(Tc, camera.pos.x, camera.pos.y, camera.pos.z);
     makeRotationMat(Rc, camera.orientation.x,
@@ -76,7 +76,7 @@ void makeWorldToCameraProj(Eigen::Matrix4d& m, Camera& camera) {
 /** @brief Makes the projection matrix from camera space to homogeneous
  *         Normalized Device Coordinates (NDC). */
 void makePerspectiveProjection(Eigen::Matrix4d& perspectiveProj,
-                               Camera& camera)
+                               const Camera& camera)
 {
     double m00, m11, m22, m02, m12, m23;
 
