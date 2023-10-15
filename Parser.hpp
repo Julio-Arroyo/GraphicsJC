@@ -129,7 +129,7 @@ bool parseDescription(const std::string& fname,
                     assert(line.length() == 0);
                     Eigen::Matrix4d perspectiveProj, worldToCameraProj;
                     makeWorldToCameraProj(worldToCameraProj, camera);
-                    makePerspectiveProjection(perspectiveProj);
+                    makePerspectiveProjection(perspectiveProj, camera);
                     worldToHomoNDC = perspectiveProj*worldToCameraProj;
                     stage = ParsingStage::OBJECTS;
                 }

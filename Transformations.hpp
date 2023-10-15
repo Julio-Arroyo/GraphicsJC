@@ -75,7 +75,9 @@ void makeWorldToCameraProj(Eigen::Matrix4d& m, Camera& camera) {
 
 /** @brief Makes the projection matrix from camera space to homogeneous
  *         Normalized Device Coordinates (NDC). */
-void makePerspectiveProjection(Eigen::Matrix4d& perspectiveProj) {
+void makePerspectiveProjection(Eigen::Matrix4d& perspectiveProj,
+                               Camera& camera)
+{
     double m00, m11, m22, m02, m12, m23;
 
     m00 = 2.0*camera.near / (camera.right - camera.left);
