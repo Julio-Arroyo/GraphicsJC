@@ -9,6 +9,7 @@
 #include <sstream>
 #include "Eigen"
 #include "Types.hpp"
+#include "Util.hpp"
 
 class Object {
 public:
@@ -30,16 +31,18 @@ public:
             std::string hdr = currLine.substr(0, currLine.find(' '));
             if (hdr == "v") {
                 double buff[3];
+                std::string s;
                 assert(3 == parse_parameter_str(currLine,
-                                                paramHeader,
+                                                s,
                                                 buff,
                                                 3));
                 Vertex v = {buff[0], buff[1], buff[2]};
                 vertices.push_back(v);
             } else if (hdr == "vn") {
                 double buff[3];
+                std::string s;
                 assert(3 == parse_parameter_str(currLine,
-                                                paramHeader,
+                                                s,
                                                 buff,
                                                 3));
                 Vertex n = {buff[0], buff[1], buff[2]};
