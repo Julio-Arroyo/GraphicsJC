@@ -16,12 +16,11 @@ struct Vertex {
 };
 
 struct Face {
-    struct IntTriple {
-        int a, b, c;
+    struct IdxTriple {
+        int i1, i2, i3;
     };
-
-    IntTriple vIndices;
-    IntTriple nIndices;
+    IdxTriple v;
+    IdxTriple n;
 };
 
 struct VertexHomoNDC {

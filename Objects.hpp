@@ -42,7 +42,7 @@ public:
                                                 paramHeader,
                                                 buff,
                                                 3));
-                Normal n = {buff[0], buff[1], buff[2]};
+                Vertex n = {buff[0], buff[1], buff[2]};
                 normals.push_back(n);
             } else if (hdr == "f") {
                 uint8_t vBuff[3];
@@ -119,19 +119,19 @@ public:
     void fillScreenCoords(std::vector<std::vector<bool>>& screenCoords,
                           size_t xres, size_t yres) {
         for (Face face : faces) {
-            Vertex v1 = vertices[face.v1Idx];
+            Vertex v1 = vertices[face.v.i1];
             int32_t v1_x = (int32_t) (((v1.x - (-1)) / (1 - (-1))) * xres);
             int32_t v1_y = (int32_t) (((v1.y - (-1)) / (1 - (-1))) * yres);
             v1_x = std::min(std::max(0, v1_x), (int32_t) xres-1);
             v1_y = std::min(std::max(0, v1_y), (int32_t) yres-1);
             
-            Vertex v2 = vertices[face.v2Idx];
+            Vertex v2 = vertices[face.v.i2];
             int32_t v2_x = (int32_t) (((v2.x - (-1)) / (1 - (-1))) * xres);
             int32_t v2_y = (int32_t) (((v2.y - (-1)) / (1 - (-1))) * yres);
             v2_x = std::min(std::max(0, v2_x), (int32_t) xres-1);
             v2_y = std::min(std::max(0, v2_y), (int32_t) yres-1);
 
-            Vertex v3 = vertices[face.v3Idx];
+            Vertex v3 = vertices[face.v.i3];
             int32_t v3_x = (int32_t) (((v3.x - (-1)) / (1 - (-1))) * xres);
             int32_t v3_y = (int32_t) (((v3.y - (-1)) / (1 - (-1))) * yres);
             v3_x = std::min(std::max(0, v3_x), (int32_t) xres-1);
