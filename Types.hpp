@@ -30,9 +30,9 @@ struct VertexHomoNDC {
 };
 
 struct Color {
-    float r;
-    float g;
-    float b;
+    double r;
+    double g;
+    double b;
 };
 
 struct Position {
