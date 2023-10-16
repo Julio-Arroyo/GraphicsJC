@@ -27,10 +27,38 @@ public:
         std::getline(file, currLine);
 
         while (file) {
-            if (printObj) {
-                std::cout << currLine << std::endl;
+            std::string hdr = currLine.substr(0, currLine.find(' '));
+            if (hdr == "v") {
+                double buff[3];
+                assert(3 == parse_parameter_str(currLine,
+                                                paramHeader,
+                                                buff,
+                                                3));
+                Vertex v = {buff[0], buff[1], buff[2]};
+                vertices.push_back(v);
+            } else if (hdr == "vn") {
+                double buff[3];
+                assert(3 == parse_parameter_str(currLine,
+                                                paramHeader,
+                                                buff,
+                                                3));
+                Normal n = {buff[0], buff[1], buff[2]};
+                normals.push_back(n);
+            } else if (hdr == "f") {
+                uint8_t vBuff[3];
+                uint8_t nBuff[3];
+                parseStrTwoBuff(currLine, vBuff, nBuff);
+                Face f = {{vBuff[0], vBuff[1], vBuff[2]},
+                          {nBuff[0], nBuff[1], nBuff[2]}};
+                faces.push_back(f);
+            } else {
+                std::cout << "ERROR: parsing .obj unknown hdr "
+                          << hdr << std::endl;
             }
 
+            std::getline(file, currLine);
+
+            /*
             std::istringstream currStream{currLine};
             std::string token;
 
@@ -38,8 +66,8 @@ public:
             assert(token.length() == 1);  // first token should be header
             char objType = token[0];
 
-            /* Read 3 numbers (which may be either vertex coordinates
-                or vertex indices) into buffer */
+            // Read 3 numbers (which may be either vertex coordinates
+            //    or vertex indices) into buffer
             int count = 0;
             double buffer[3];
             currStream >> token;
@@ -65,7 +93,8 @@ public:
                     break;
                 }
             }
-            std::getline(file, currLine);
+            */
+
         }
         if (printObj) {
             std::cout << std::endl;
@@ -279,6 +308,7 @@ private:
     size_t numCopies{0};
     std::vector<Vertex> vertices;
     std::vector<Face> faces;
+    std::vector<Vertex> normals;
     Color ambient;
     Color diffuse;
     Color specular;

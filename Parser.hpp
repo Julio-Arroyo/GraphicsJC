@@ -39,17 +39,20 @@ bool parseDescription(const std::string& fname,
                 if (line.length() > 0) {
                     std::string param_header;
                     double buffer[4];
-                    int no_params = parse_parameter_str(line, param_header, buffer, 4);
+                    int no_params = parse_parameter_str(line,
+                                                        param_header,
+                                                        buffer,
+                                                        4);
 
                     if (param_header == "position") {
                         assert(no_params == 3);
-                        camera.pos = (Camera::Position) {buffer[0], buffer[1], buffer[2]};
+                        camera.pos = {buffer[0], buffer[1], buffer[2]};
                     } else if (param_header == "orientation") {
                         assert(no_params == 4);
-                        camera.orientation = (Camera::Orientation) {buffer[0],
-                                                                    buffer[1],
-                                                                    buffer[2],
-                                                                    buffer[3]};
+                        camera.orientation = {buffer[0],
+                                              buffer[1],
+                                              buffer[2],
+                                              buffer[3]};
                     } else if (param_header == "near") {
                         assert(no_params == 1);
                         camera.near = buffer[0];
@@ -78,8 +81,56 @@ bool parseDescription(const std::string& fname,
                     makeWorldToCameraProj(worldToCameraProj, camera);
                     makePerspectiveProjection(perspectiveProj, camera);
                     worldToHomoNDC = perspectiveProj*worldToCameraProj;
+                    stage = ParsingStage::LIGHTS;
+                }
+                break;
+            }
+            case ParsingStage::LIGHTS: {
+                if (line.length() > 0) {
+                    double buffer[3];
+                    std::string paramHeader;
+                    int firstCommaIdx = line.find(',');
+                    assert(firstCommaIdx != std::string::npos);
+                    double secondCommaIdx = line.find(',', firstCommaIdx+1);
+                    assert(secondCommaIdx != std::string::npos);
+
+                    PointLight light;
+                    // parse light's position
+                    std::string light_pos_str = line.substr(0, firstCommaIdx);
+                    int no_params = parse_parameter_str(light_pos_str,
+                                                        paramHeader,
+                                                        buffer,
+                                                        3);
+                    assert(no_params == 3);
+                    light.pos = {buffer[0], buffer[1], buffer[2]};
+                    
+                    // parse light's color
+                    std::string light_color_str = "color";
+                    light_color_str += line.substr(firstCommaIdx+1,
+                                                   secondCommaIdx-firstCommaIdx);
+                    no_params = parse_parameter_str(light_color_str,
+                                                    paramHeader,
+                                                    buffer,
+                                                    3);
+                    assert(no_params == 3);
+                    assert(paramHeader == "color");
+                    light.color = {buffer[0], buffer[1], buffer[2]};
+
+                    // get light's attenuation parameter
+                    std::string atten_str = "attenuation";
+                    atten_str += line.substr(secondCommaIdx+1,
+                                             std::string::npos);
+                    no_params = parse_parameter_str(atten_str,
+                                                    paramHeader,
+                                                    buffer,
+                                                    1);
+                    assert(no_params == 1);
+                    assert(paramHeader == "attenuation");
+                    light.attenuation = buffer[0];
+                } else {
                     stage = ParsingStage::OBJECTS;
                 }
+
                 break;
             }
             case ParsingStage::OBJECTS: {
@@ -111,10 +162,29 @@ bool parseDescription(const std::string& fname,
                     std::shared_ptr<Object> copy
                         = std::make_shared<Object>(*original);
                     objectCopies.push_back(copy);
-                } else {  // new transformation matrix for the current copy
+                } else if (spaceIdx == 1) {  // new transformation matrix for the current copy
                     Eigen::Matrix4d transform;
                     makeMatrix(transform, line);
                     objectCopies.back()->addTransformation(transform);
+                } else {
+                    std::string paramHdr;
+                    double buffer[3];
+                    int no_params = parse_parameter_str(line,
+                                                        paramHdr,
+                                                        buffer,
+                                                        3);
+                    if (paramHdr == "ambient") {
+                        assert(no_params == 3);
+                    } else if (paramHdr == "diffuse") {
+                        assert(no_params == 3);
+                    } else if (paramHdr == "specular") {
+                        assert(no_params == 3);
+                    } else if (paramHdr == "shininess") {
+                        assert(no_params == 1);
+                    } else {
+                        std::cout << "ERROR: unexpected parameter" << std::endl;
+                        assert(false);
+                    }
                 }
                 break;
             }

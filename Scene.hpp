@@ -47,9 +47,6 @@ public:
 private:
     std::unordered_map<std::string, std::shared_ptr<Object>> labelToObj;
     std::vector<std::shared_ptr<Object>> objectCopies;
-    // Eigen::Matrix4d worldToCameraProj;  // world to camera space
-    // Eigen::Matrix4d perspectiveProj;    // camera space to homogeneous NDC
-    // Camera camera;
     const size_t xres, yres;
 };
 

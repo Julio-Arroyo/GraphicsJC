@@ -16,9 +16,12 @@ struct Vertex {
 };
 
 struct Face {
-    int v1Idx;
-    int v2Idx;
-    int v3Idx;
+    struct IntTriple {
+        int a, b, c;
+    };
+
+    IntTriple vIndices;
+    IntTriple nIndices;
 };
 
 struct VertexHomoNDC {
@@ -32,17 +35,24 @@ struct Color {
     float b;
 };
 
-struct Camera {
-    struct Position {
-        double x, y, z;
-    };
-    struct Orientation {
-        double x, y, z, theta;
-    };
+struct Position {
+    double x, y, z;
+};
 
+struct Orientation {
+    double x, y, z, theta;
+};
+
+struct Camera {
     Position pos;
     Orientation orientation;
     double near, far, left, right, top, bottom;
+};
+
+struct PointLight {
+    Position pos;
+    Color color;
+    float attenuation;
 };
 
 #endif
