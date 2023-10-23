@@ -21,13 +21,17 @@ enum ParsingStage : size_t {
  */
 bool parseDescription(const std::string& fname,
                       std::unordered_map<std::string, std::shared_ptr<Object>>& labelToObj,
-                      std::vector<std::shared_ptr<Object>>& objectCopies)
+                      std::vector<std::shared_ptr<Object>>& objectCopies,
+                      std::vector<PointLight>& lights, Camera& camera,
+                      Eigen::Matrix4d& worldToHomoNDC)
 {
     ParsingStage stage{ParsingStage::CAMERA};
     std::ifstream file{fname};
     std::string line;
-    Eigen::Matrix4d worldToHomoNDC;
-    Camera camera;
+    
+    Eigen::Matrix4d normalTrans;
+    Color ambient, diffuse, specular;
+    double shininess;
 
     std::getline(file, line);
     assert(line == "camera:");  // expected first line in file
@@ -90,7 +94,12 @@ bool parseDescription(const std::string& fname,
                     double buffer[3];
                     std::string paramHeader;
                     int firstCommaIdx = line.find(',');
-                    assert(firstCommaIdx != std::string::npos);
+
+                    // handle case where scene description has no lights
+                    if (firstCommaIdx == std::string::npos) {
+                        stage = ParsingStage::OBJECTS;
+                        continue;
+                    }
                     double secondCommaIdx = line.find(',', firstCommaIdx+1);
                     assert(secondCommaIdx != std::string::npos);
 
@@ -103,11 +112,12 @@ bool parseDescription(const std::string& fname,
                                                         3);
                     assert(no_params == 3);
                     light.pos = {buffer[0], buffer[1], buffer[2]};
+                    // std::cout << "light pos: " << light.pos.x << ' ' << light.pos.y << ' ' << light.pos.z << ' ' << std::endl;
                     
                     // parse light's color
                     std::string light_color_str = "color";
                     light_color_str += line.substr(firstCommaIdx+1,
-                                                   secondCommaIdx-firstCommaIdx);
+                                                   secondCommaIdx-firstCommaIdx-2);
                     no_params = parse_parameter_str(light_color_str,
                                                     paramHeader,
                                                     buffer,
@@ -115,6 +125,7 @@ bool parseDescription(const std::string& fname,
                     assert(no_params == 3);
                     assert(paramHeader == "color");
                     light.color = {buffer[0], buffer[1], buffer[2]};
+                    // std::cout << "light color: " << light.color.r << ' ' << light.color.g << ' ' << light.color.b << ' ' << std::endl;
 
                     // get light's attenuation parameter
                     std::string atten_str = "attenuation";
@@ -127,6 +138,8 @@ bool parseDescription(const std::string& fname,
                     assert(no_params == 1);
                     assert(paramHeader == "attenuation");
                     light.attenuation = buffer[0];
+
+                    lights.push_back(light);
                 } else {
                     stage = ParsingStage::OBJECTS;
                 }
@@ -143,8 +156,7 @@ bool parseDescription(const std::string& fname,
                     assert(spaceIdx != std::string::npos);
 
                     std::string label = line.substr(0, spaceIdx);
-                    std::string objFilename = line.substr(spaceIdx + 1,
-                                                          line.length());
+                    std::string objFilename = line.substr(spaceIdx + 1, std::string::npos);
                     std::shared_ptr<Object> obj =
                         std::make_shared<Object>(objFilename, label, false);
 
@@ -155,8 +167,10 @@ bool parseDescription(const std::string& fname,
             case ParsingStage::OBJECT_COPIES: {
                 size_t spaceIdx = line.find(" ");
                 if (line.length() == 0) {  // finished copy, no more transformations
-                    objectCopies.back()->addTransformation(worldToHomoNDC);
+                    objectCopies.back()->setMaterialProperties(ambient, diffuse,
+                                                               specular, shininess);
                     objectCopies.back()->applyTransformation();
+                    objectCopies.back()->applyNormalTransformation();
                 } else if (spaceIdx == std::string::npos) {  // create a new copy
                     std::shared_ptr<Object> original = labelToObj.find(line)->second;
                     std::shared_ptr<Object> copy
@@ -164,7 +178,11 @@ bool parseDescription(const std::string& fname,
                     objectCopies.push_back(copy);
                 } else if (spaceIdx == 1) {  // new transformation matrix for the current copy
                     Eigen::Matrix4d transform;
-                    makeMatrix(transform, line);
+                    Type tt = makeMatrix(transform, line);
+                    if (tt == Type::ROTATION_MAT ||
+                        tt == Type::SCALING_MAT) {
+                        objectCopies.back()->addNormalTransformation(transform);
+                    }
                     objectCopies.back()->addTransformation(transform);
                 } else {
                     std::string paramHdr;
@@ -175,12 +193,16 @@ bool parseDescription(const std::string& fname,
                                                         3);
                     if (paramHdr == "ambient") {
                         assert(no_params == 3);
+                        ambient = {buffer[0], buffer[1], buffer[2]};
                     } else if (paramHdr == "diffuse") {
                         assert(no_params == 3);
+                        diffuse = {buffer[0], buffer[1], buffer[2]}; 
                     } else if (paramHdr == "specular") {
                         assert(no_params == 3);
+                        specular = {buffer[0], buffer[1], buffer[2]}; 
                     } else if (paramHdr == "shininess") {
                         assert(no_params == 1);
+                        shininess = buffer[0];
                     } else {
                         std::cout << "ERROR: unexpected parameter" << std::endl;
                         assert(false);
@@ -193,8 +215,10 @@ bool parseDescription(const std::string& fname,
     }
 
     if (objectCopies.size() > 0) {
-        objectCopies.back()->addTransformation(worldToHomoNDC);
+        objectCopies.back()->setMaterialProperties(ambient, diffuse,
+                                                   specular, shininess);
         objectCopies.back()->applyTransformation();
+        objectCopies.back()->applyNormalTransformation();
     }
 
     return true;

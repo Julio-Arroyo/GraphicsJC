@@ -13,6 +13,7 @@ struct Vertex {
     double x;
     double y;
     double z;
+    // TODO add color
 };
 
 struct Face {
@@ -34,24 +35,20 @@ struct Color {
     double b;
 };
 
-struct Position {
-    double x, y, z;
-};
-
 struct Orientation {
     double x, y, z, theta;
 };
 
 struct Camera {
-    Position pos;
+    Vertex pos;
     Orientation orientation;
     double near, far, left, right, top, bottom;
 };
 
 struct PointLight {
-    Position pos;
+    Vertex pos;
     Color color;
-    float attenuation;
+    double attenuation;
 };
 
 #endif

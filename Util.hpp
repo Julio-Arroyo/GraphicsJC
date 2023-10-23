@@ -33,8 +33,8 @@ int parse_parameter_str(std::string& str,
 
 /* Parses string of form 'f 1//1 2//1 3//1' into two buffers */
 int parseStrTwoBuff(std::string& str,
-                    uint8_t* vBuff,
-                    uint8_t* nBuff,
+                    int* vBuff,
+                    int* nBuff,
                     std::string pairDelim = "//",
                     uint8_t buff_sz = 3)
 {
@@ -42,17 +42,21 @@ int parseStrTwoBuff(std::string& str,
     std::string token;
     ss >> token;  // reads 'vn'
 
-    uint8_t count = 0;
+    size_t count = 0;
+    ss >> token;
     while (ss) {
         if (count == buff_sz) { assert(false); }
 
-        uint8_t pos = token.find(pairDelim);
+        size_t pos = token.find(pairDelim);
+        assert(pos != std::string::npos);
         std::string n1Str = token.substr(0, pos);
-        std::string n2Str = token.substr(pos+pairDelim.size(),
+        std::string n2Str = token.substr(pos+(pairDelim.size()),
                                          std::string::npos);
         vBuff[count] = std::stoi(n1Str);
         nBuff[count] = std::stoi(n2Str);
+
         count++;
+        ss >> token;
     }
     return count;
 }
