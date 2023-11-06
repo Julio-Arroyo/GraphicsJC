@@ -169,8 +169,8 @@ bool parseDescription(const std::string& fname,
                 if (line.length() == 0) {  // finished copy, no more transformations
                     objectCopies.back()->setMaterialProperties(ambient, diffuse,
                                                                specular, shininess);
-                    objectCopies.back()->applyTransformation();
-                    objectCopies.back()->applyNormalTransformation();
+                    // objectCopies.back()->applyTransformation();
+                    // objectCopies.back()->applyNormalTransformation();
                 } else if (spaceIdx == std::string::npos) {  // create a new copy
                     std::shared_ptr<Object> original = labelToObj.find(line)->second;
                     std::shared_ptr<Object> copy
@@ -178,12 +178,15 @@ bool parseDescription(const std::string& fname,
                     objectCopies.push_back(copy);
                 } else if (spaceIdx == 1) {  // new transformation matrix for the current copy
                     Eigen::Matrix4d transform;
-                    Type tt = makeMatrix(transform, line);
+                    float transParams[4];
+
+                    Type tt = makeMatrix(transform, line, transParams);
                     if (tt == Type::ROTATION_MAT ||
                         tt == Type::SCALING_MAT) {
                         objectCopies.back()->addNormalTransformation(transform);
                     }
                     objectCopies.back()->addTransformation(transform);
+                    objectCopies.back()->recordTransformation(tt, transParams);
                 } else {
                     std::string paramHdr;
                     double buffer[3];
@@ -217,8 +220,8 @@ bool parseDescription(const std::string& fname,
     if (objectCopies.size() > 0) {
         objectCopies.back()->setMaterialProperties(ambient, diffuse,
                                                    specular, shininess);
-        objectCopies.back()->applyTransformation();
-        objectCopies.back()->applyNormalTransformation();
+        // objectCopies.back()->applyTransformation();
+        // objectCopies.back()->applyNormalTransformation();
     }
 
     return true;

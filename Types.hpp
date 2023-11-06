@@ -13,7 +13,6 @@ struct Vertex {
     double x;
     double y;
     double z;
-    // TODO add color
 };
 
 struct Face {
@@ -49,6 +48,11 @@ struct PointLight {
     Vertex pos;
     Color color;
     double attenuation;
+};
+
+struct TransformationRecord {
+    Type tt;
+    float params[4];
 };
 
 #endif

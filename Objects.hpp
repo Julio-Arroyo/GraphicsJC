@@ -321,6 +321,34 @@ public:
         }
     }
 
+    std::vector<Vertex> getVertices() {
+        return vertices;
+    }
+
+    std::vector<Vertex> getNormals() {
+        return normals;
+    }
+
+    std::vector<Face> getFaces() {
+        return faces;
+    }
+
+    void recordTransformation(Type tt, float* params) {
+        TransformationRecord tr;
+        tr.tt = tt;
+        tr.params[0] = params[0];
+        tr.params[1] = params[1];
+        tr.params[2] = params[2];
+        tr.params[3] = params[3];
+        transSeq.push_back(tr);
+    }
+
+    Color ambient;
+    Color diffuse;
+    Color specular;
+    double shininess;
+    std::vector<TransformationRecord> transSeq;
+
 private:
     void drawLine(int32_t x0, int32_t y0, int32_t x1, int32_t y1,
                   std::vector<std::vector<bool>>& screenCoords) {
@@ -455,10 +483,6 @@ private:
     std::vector<Vertex> vertices;
     std::vector<Face> faces;
     std::vector<Vertex> normals;
-    Color ambient;
-    Color diffuse;
-    Color specular;
-    double shininess;
 };
 
 #endif

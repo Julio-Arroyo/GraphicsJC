@@ -78,6 +78,18 @@ public:
         }
     }
 
+    std::vector<std::shared_ptr<Object>> getObjects() {
+        return objectCopies;
+    }
+
+    Camera getCamera() {
+        return camera;
+    }
+
+    std::vector<PointLight> getLights() {
+        return lights;
+    }
+
 private:
     std::unordered_map<std::string, std::shared_ptr<Object>> labelToObj;
     std::vector<std::shared_ptr<Object>> objectCopies;

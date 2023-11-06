@@ -189,8 +189,14 @@ void display() {
     glLoadIdentity();
 
     // Camera rotations caused by the mouse
-    glRotatef(y_view_angle, 1, 0, 0);
-    glRotatef(x_view_angle, 0, 1, 0);
+    // glRotatef(y_view_angle, 1, 0, 0);
+    // glRotatef(x_view_angle, 0, 1, 0);
+
+    // float params[4] = lastRotation.getParams();
+    // glRotatef(params[0], params[1], params[2], params[3]);
+
+    float* rotationMatrix = lastRotation.toMatrix();
+    glMultMatrixf(rotationMatrix);
 
     // std::cout << "angle " << cam_orientation_angle << std::endl
     //           << "or " << cam_orientation_axis[0]
@@ -230,21 +236,29 @@ void mouse_pressed(int button, int state, int x, int y) {
         mouse_y = y;
         is_pressed = true;
     } else if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
+        lastRotation = currentRotation*lastRotation;
+        currentRotation = Quaternion();
+        mouse_x = x;
+        mouse_y = y;
+        glutPostRedisplay();
+
         is_pressed = false;
     }
 }
 
 void mouse_moved(int x, int y) {
     if (is_pressed) {
-        x_view_angle += ((float) x - (float) mouse_x) * mouse_scale_x * x_view_step;
-        float temp_y_view_angle = y_view_angle +
-                                  ((float) y - (float) mouse_y) * mouse_scale_y * y_view_step;
-        y_view_angle = (temp_y_view_angle > 90 || temp_y_view_angle < -90) ?
-                       y_view_angle : temp_y_view_angle;
+        // x_view_angle += ((float) x - (float) mouse_x) * mouse_scale_x * x_view_step;
+        // float temp_y_view_angle = y_view_angle +
+        //                           ((float) y - (float) mouse_y) * mouse_scale_y * y_view_step;
+        // y_view_angle = (temp_y_view_angle > 90 || temp_y_view_angle < -90) ?
+        //                y_view_angle : temp_y_view_angle;
 
-        mouse_x = x;
-        mouse_y = y;
-        glutPostRedisplay();
+        currentRotation = Quaternion(x, y, mouse_x, mouse_y);
+
+        // mouse_x = x;
+        // mouse_y = y;
+        // glutPostRedisplay();
     }
 }
 

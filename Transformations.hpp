@@ -40,9 +40,9 @@ void makeScalingMat(Eigen::Matrix4d& m, double sx, double sy, double sz) {
          0,  0,  0,  1;
 }
 
-Type makeMatrix(Eigen::Matrix4d& m, std::string& line) {
+template <typename T>
+Type makeMatrix(Eigen::Matrix4d& m, std::string& line, T* buffer) {
     std::string param_header;
-    double buffer[4];
 
     int param_count = parse_parameter_str(line, param_header, buffer, 4);
     assert(-1 != param_count);
