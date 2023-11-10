@@ -10,9 +10,15 @@ KLi::Vec3f calc_normal(KLi::HEF* face) {
   KLi::HE* edge = face->edge;
   KLi::HE* next = face->edge->next;
 
-  KLi::Vec3f v1 = {(float) edge->vertex->x, (float) edge->vertex->y, (float) edge->vertex->z};
-  KLi::Vec3f v2 = {(float) next->vertex->x, (float) next->vertex->y, (float) next->vertex->z};
-  KLi::Vec3f v3 = {(float) next->flip->vertex->x, (float) next->flip->vertex->y, (float) next->flip->vertex->z};
+  KLi::Vec3f v1 = {(float) edge->vertex->x,
+                   (float) edge->vertex->y,
+                   (float) edge->vertex->z};
+  KLi::Vec3f v2 = {(float) next->vertex->x,
+                   (float) next->vertex->y,
+                   (float) next->vertex->z};
+  KLi::Vec3f v3 = {(float) next->next->vertex->x,
+                   (float) next->next->vertex->y,
+                   (float) next->next->vertex->z};
 
   KLi::Vec3f A = {v2.x - v1.x, v2.y - v1.y, v2.z - v1.z};  // v2-v1
   KLi::Vec3f B = {v3.x - v1.x, v3.y - v1.y, v3.z - v1.z};  // v3-v1
@@ -35,7 +41,6 @@ KLi::Vec3f calc_vertex_normal(KLi::HEV* vertex)
   normal.z = 0;
 
   KLi::HE* he = vertex->out; // get outgoing halfedge from given vertex
-
   do
   {
     // compute the normal of the plane of the face
@@ -63,6 +68,8 @@ void computeVertexNormals(std::vector<Vertex>& normals,
 
   // Put 'vertices', 'faces' into Mesh_Data
   KLi::Mesh_Data* mesh_data = new KLi::Mesh_Data;
+  mesh_data->vertices = new std::vector<KLi::Vertex*>();
+  mesh_data->faces = new std::vector<KLi::Face*>();
   for (int i = 0; i < vertices.size(); i++) {
     KLi::Vertex* v = new KLi::Vertex{(float) vertices[i].x,
                                      (float) vertices[i].y,
@@ -76,18 +83,36 @@ void computeVertexNormals(std::vector<Vertex>& normals,
     mesh_data->faces->push_back(f);
   }
 
-  // Populate halfedge datastructures
+  // Populate halfedge data structures
   std::vector<KLi::HEV*> *hevs = new std::vector<KLi::HEV*>();
   std::vector<KLi::HEF*> *hefs = new std::vector<KLi::HEF*>();
   KLi::build_HE(mesh_data, hevs, hefs);
 
   // Compute normals
-  for (KLi::HEV* v : *hevs) {
-    KLi::Vec3f vn = calc_vertex_normal(v);
-    normals.push_back({vn.x, vn.y, vn.z});
+  for (int i = 0; i < hefs->size(); i++) {  // for each face
+    KLi::HE* he = hefs->at(i)->edge;
+    int vertex_count = 0;
+    do {
+      KLi::Vec3f vn = calc_vertex_normal(he->vertex);
+      normals.push_back({vn.x, vn.y, vn.z});
+      vertex_count++;
+      he = he->next;
+    } while (he != hefs->at(i)->edge);
+    assert(vertex_count == 3);
   }
-  
+
+  // delete allocated memory
   KLi::delete_HE(hevs, hefs);
+  for (int i = 0; i < mesh_data->vertices->size(); i++) {
+      delete mesh_data->vertices->at(i);
+  }
+  delete mesh_data->vertices;
+
+  for (int i = 0; i < mesh_data->faces->size(); i++) {
+      delete mesh_data->faces->at(i);
+  }
+  delete mesh_data->faces;
+  delete mesh_data;
 }
 #endif
 

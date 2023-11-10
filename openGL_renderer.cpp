@@ -31,12 +31,6 @@ void init() {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
-    // std::cout << "l " << cam_left << std::endl;
-    // std::cout << "r " << cam_right << std::endl;
-    // std::cout << "b " << cam_bottom << std::endl;
-    // std::cout << "t " << cam_top << std::endl;
-    // std::cout << "n " << cam_near << std::endl;
-    // std::cout << "f " << cam_far << std::endl;
     glFrustum(cam_left, cam_right, cam_bottom,
               cam_top, cam_near, cam_far);
 
@@ -76,38 +70,22 @@ void set_lights() {
 }
 
 void draw_objects() {
-    // std::cout << "draw_objects " << objects.size() << std::endl;
     for (int i = 0; i < objects.size(); i++) {
-        // std::cout << "objects " << i << std::endl;
         glPushMatrix();
         {
         for (int j = objects[i]->transSeq.size() - 1; j  >= 0; j--) {
-            // std::cout << "help bro " << i << std::endl;
             TransformationRecord tr = objects[i]->transSeq[j];
             switch (tr.tt) {
                 case Type::TRANSLATION_MAT: {
-                    // std::cout << "TRANS "
-                    //           << tr.params[0] << " "
-                    //           << tr.params[1] << " "
-                    //           << tr.params[2] << std::endl;
                     glTranslatef(tr.params[0], tr.params[1], tr.params[2]);
                     break;
                 }
                 case Type::ROTATION_MAT: {
                     float angle = tr.params[3] * 180 / M_PI;
-                    // std::cout << "ROT "
-                    //           << angle << " "
-                    //           << tr.params[0] << " "
-                    //           << tr.params[1] << " "
-                    //           << tr.params[2] << std::endl;
                     glRotatef(angle, tr.params[0], tr.params[1], tr.params[2]);
                     break;
                 }
                 case Type::SCALING_MAT: {
-                    // std::cout << "SCALE "
-                    //           << tr.params[0] << " "
-                    //           << tr.params[1] << " "
-                    //           << tr.params[2] << std::endl;
                     glScalef(tr.params[0], tr.params[1], tr.params[2]);
                     break;
                 }
@@ -146,22 +124,28 @@ void draw_objects() {
             Float3 v2f = {(float) v2.x, (float) v2.y, (float) v2.z};
             Vertex v3 = vertices[face.v.i3];
             Float3 v3f = {(float) v3.x, (float) v3.y, (float) v3.z};
-            // std::cout << "v " << v1f.x << " " << v1f.y << " " << v1f.z << std::endl;
-            // std::cout << "v " << v2f.x << " " << v2f.y << " " << v2f.z << std::endl;
-            // std::cout << "v " << v3f.x << " " << v3f.y << " " << v3f.z << std::endl;
             vertex_buffer.push_back(v1f);
             vertex_buffer.push_back(v2f);
             vertex_buffer.push_back(v3f);
 
-            Vertex n1 = normals[face.n.i1];
-            Float3 n1f = {(float) n1.x, (float) n1.y, (float) n1.z};
-            Vertex n2 = normals[face.n.i2];
-            Float3 n2f = {(float) n2.x, (float) n2.y, (float) n2.z};
-            Vertex n3 = normals[face.n.i3];
-            Float3 n3f = {(float) n3.x, (float) n3.y, (float) n3.z};
-            normal_buffer.push_back(n1f);
-            normal_buffer.push_back(n2f);
-            normal_buffer.push_back(n3f);
+            if (vertices.size() == normals.size()) {  // TODO: handle case of different parsing modes better this is when normals are specified
+              Vertex n1 = normals[face.n.i1];
+              Float3 n1f = {(float) n1.x, (float) n1.y, (float) n1.z};
+              Vertex n2 = normals[face.n.i2];
+              Float3 n2f = {(float) n2.x, (float) n2.y, (float) n2.z};
+              Vertex n3 = normals[face.n.i3];
+              Float3 n3f = {(float) n3.x, (float) n3.y, (float) n3.z};
+              normal_buffer.push_back(n1f);
+              normal_buffer.push_back(n2f);
+              normal_buffer.push_back(n3f);
+            }
+        }
+        if (vertices.size() != normals.size()) {
+            for (int i = 1; i < normals.size(); i++) {
+              Vertex n1 = normals[i];
+              Float3 n1f = {(float) n1.x, (float) n1.y, (float) n1.z};
+              normal_buffer.push_back(n1f);
+            }
         }
         glVertexPointer(3, GL_FLOAT, 0, &vertex_buffer[0]);
         glNormalPointer(GL_FLOAT, 0, &normal_buffer[0]);

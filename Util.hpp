@@ -48,7 +48,10 @@ int parseStrTwoBuff(std::string& str,
         if (count == buff_sz) { assert(false); }
 
         size_t pos = token.find(pairDelim);
-        assert(pos != std::string::npos);
+        if (pos != std::string::npos) {
+            throw std::invalid_argument("Failed parsing line of format 'f v1//n1 v2///n2 v3//n3'. Trying 'f v1 v2 v3'");
+            return -1;
+        }
         std::string n1Str = token.substr(0, pos);
         std::string n2Str = token.substr(pos+(pairDelim.size()),
                                          std::string::npos);

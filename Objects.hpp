@@ -12,6 +12,7 @@
 #include "Lights.hpp"
 #include "Util.hpp"
 #include "Transformations.hpp"
+#include "DiscreteDifferentialGeometry.hpp"
 
 class Object {
 public:
@@ -50,18 +51,18 @@ public:
                                                 buff,
                                                 3));
                 Vertex n = {buff[0], buff[1], buff[2]};
-                // std::cout << "vn " << n.x << ' ' << n.y << ' ' << n.z << std::endl;
                 normals.push_back(n);
             } else if (hdr == "f") {
-                 int vBuff[3];
-                 int nBuff[3];
-                parseStrTwoBuff(currLine, vBuff, nBuff);
+                int vBuff[3];
+                int nBuff[3];
+                std::string lbl;
+                try {
+                  parseStrTwoBuff(currLine, vBuff, nBuff);
+                } catch (std::invalid_argument& e) {
+                  parse_parameter_str(currLine, lbl, vBuff, 3);
+                }
                 Face f = {{vBuff[0], vBuff[1], vBuff[2]},
                           {nBuff[0], nBuff[1], nBuff[2]}};
-                // std::cout << "FACE: "
-                //             << vBuff[0] << "//" << nBuff[0] << " "
-                //             << vBuff[1] << "//" << nBuff[1] << " "
-                //             << vBuff[2] << "//" << nBuff[2] << " " << std::endl;
                 faces.push_back(f);
             } else {
                 std::cout << "ERROR: parsing .obj unknown hdr "
@@ -72,6 +73,10 @@ public:
         }
         if (printObj) {
             std::cout << std::endl;
+        }
+
+        if (normals.size() == 1) {
+            computeVertexNormals(normals, vertices, faces);
         }
     }
 
@@ -189,14 +194,10 @@ public:
             Vertex v1 = vertices[f.v.i1];
             Vertex v2 = vertices[f.v.i2];
             Vertex v3 = vertices[f.v.i3];
-            // std::cout << "normals" << normals.size() << std::endl;
-            // std::cout << "f.n.ij " << f.n.i1 << ' ' << f.n.i2 << ' ' << f.n.i3 << std::endl;
             Vertex n1 = normals[f.n.i1];
             Vertex n2 = normals[f.n.i2];
             Vertex n3 = normals[f.n.i3];
-            // std::cout << "not normals" << std::endl;
 
-            // std::cout << "diffusemeee " << diffuse.r << std::endl;
             Color c1 = LightingModel(v1, n1, diffuse, ambient,
                                      specular, shininess, lights,
                                      cameraPos);
@@ -206,42 +207,26 @@ public:
             Color c3 = LightingModel(v3, n3, diffuse, ambient,
                                      specular, shininess, lights,
                                      cameraPos);
-            // std::cout << "c1 (r,g,b): " << c1.r << " " << c1.g << " " << c1.b << std::endl;
 
             Vertex v1_ndc = worldToNDC(worldToHomoNDC, v1);
             Vertex v2_ndc = worldToNDC(worldToHomoNDC, v2);
             Vertex v3_ndc = worldToNDC(worldToHomoNDC, v3);
-            // std::cout << "v1_ndc: " << v1_ndc.x << " " << v1_ndc.y << " " << v1_ndc.z << std::endl;
-            // std::cout << "v2_ndc: " << v2_ndc.x << " " << v2_ndc.y << " " << v2_ndc.z << std::endl;
-            // std::cout << "v3_ndc: " << v3_ndc.x << " " << v3_ndc.y << " " << v3_ndc.z << std::endl;
 
             if (isBackFacing(v1_ndc, v2_ndc, v3_ndc)) {
-                // std::cout << "CABRON" << std::endl;
                 continue;
             }
-            // std::cout << "front-facing" << std::endl;
 
             std::pair<int, int> v1_sc = NDCtoScreen(v1_ndc, xres, yres);
             std::pair<int, int> v2_sc = NDCtoScreen(v2_ndc, xres, yres);
             std::pair<int, int> v3_sc = NDCtoScreen(v3_ndc, xres, yres);
-            // std::cout << "v1_sc: " << v1_sc.first << " " << v1_sc.second << std::endl;
 
             size_t x_min = std::min({v1_sc.first, v2_sc.first, v3_sc.first});
             size_t y_min = std::min({v1_sc.second, v2_sc.second, v3_sc.second});
             size_t x_max = std::max({v1_sc.first, v2_sc.first, v3_sc.first});
             size_t y_max = std::max({v1_sc.second, v2_sc.second, v3_sc.second});
-            // std::cout << "xmin " << x_min << std::endl;
-            // std::cout << "xmax " << x_max << std::endl;
-            // std::cout << "ymin " << y_min << std::endl;
-            // std::cout << "ymax " << y_max << std::endl;
 
             for (size_t x = x_min; x <= x_max; x++) {
                 for (size_t y = y_min; y <= y_max; y++) {
-                    // DEBUG
-                    // std::cout << "xperro " << x << std::endl;
-                    // std::cout << "v1first " << v1_sc.first << std::endl;
-                    // std::cout << "JU " <<  f_ij(x, y, v2_sc.first, v2_sc.second, v3_sc.first, v3_sc.second) << std::endl;
-                    // std::cout << "LIO " << f_ij(v1_sc.first, v1_sc.second, v2_sc.first, v2_sc.second, v3_sc.first, v3_sc.second) << std::endl;
                     double alpha = f_ij(x, y,
                                         v2_sc.first, v2_sc.second,
                                         v3_sc.first, v3_sc.second) /
@@ -261,31 +246,17 @@ public:
                                         v1_sc.first, v1_sc.second,
                                         v2_sc.first, v2_sc.second);
 
-                    // std::cout << "alpha" << alpha << std::endl;  DEBUG
-                    // std::cout << "beta" << beta << std::endl;
-                    // std::cout << "gamma" << gamma << std::endl;
                     if (0 <= alpha && alpha <= 1 &&
                         0 <= beta && beta <= 1 &&
                         0 <= gamma && gamma <= 1) {
-                        /*
-                        std::cout << "v1_ndc: " << v1_ndc.x << " " << v1_ndc.y << " " << v1_ndc.z << std::endl;
-                        std::cout << "v2_ndc: " << v2_ndc.x << " " << v2_ndc.y << " " << v2_ndc.z << std::endl;
-                        std::cout << "v3_ndc: " << v3_ndc.x << " " << v3_ndc.y << " " << v3_ndc.z << std::endl;
-                    std::cout << "alpha" << alpha << std::endl;
-                    std::cout << "beta" << beta << std::endl;
-                    std::cout << "gamma" << gamma << std::endl;
-                    */
                         Vertex interp_ndc = {alpha*v1_ndc.x + beta*v2_ndc.x + gamma*v3_ndc.x,
                                              alpha*v1_ndc.y + beta*v2_ndc.y + gamma*v3_ndc.y,
                                              alpha*v1_ndc.z + beta*v2_ndc.z + gamma*v3_ndc.z};
-                        // std::cout << "ndc_inter : " << interp_ndc.x << " " << interp_ndc.y << " " << interp_ndc.z << std::endl;
-                        // std::cout << "second" << std::endl;
                         if (inNDCcube(interp_ndc) &&
                             (interp_ndc.z < minDepth[x][y])) {
                             minDepth[x][y] = interp_ndc.z;
                             switch (alg) {
                                 case ShadingAlgo::GOURAUD: {
-                                                             // std::cout << "gouraud" << std::endl;
                                     double r = alpha*c1.r + beta*c2.r + gamma*c3.r;
                                     double g = alpha*c1.g + beta*c2.g + gamma*c3.g;
                                     double b = alpha*c1.b + beta*c2.b + gamma*c3.b;
@@ -293,7 +264,6 @@ public:
                                     break;
                                 }
                                 case ShadingAlgo::PHONG: {
-                                                           // std::cout << "phong" << std::endl;
                                     double vx = alpha*v1.x + beta*v2.x + gamma*v3.x;
                                     double vy = alpha*v1.y + beta*v2.y + gamma*v3.y;
                                     double vz = alpha*v1.z + beta*v2.z + gamma*v3.z;
@@ -350,6 +320,7 @@ public:
     std::vector<TransformationRecord> transSeq;
 
 private:
+    // TODO: move into Wireframe file
     void drawLine(int32_t x0, int32_t y0, int32_t x1, int32_t y1,
                   std::vector<std::vector<bool>>& screenCoords) {
         int32_t delta_x = x1 - x0;
@@ -486,3 +457,4 @@ private:
 };
 
 #endif
+
